@@ -1,0 +1,40 @@
+title Uusi muistiinpano
+
+note over spa.js:
+spa.js:sssä on selaimen formin 
+lähettämistä odottava ja käsittelevä tapahtuma
+end note
+
+selain->spa.js: formin lähettämisen tapahtuma
+
+note over spa.js:
+vastaanotettu tapahtuma käsitellään:
+sen datasta tehdään olio ja lisätään omaan listaan, 
+minkä jälkeen tiedosto kutsuu uudelleen
+notes-elementtiä renderöivää funktiota
+end note
+spa.js-->selain: HTML-notes-sisältö
+
+note over spa.js:
+edellisten lisäksi, spa.js -tiedosto
+postaa palvelimelle new_note_spa uuden olion
+end note
+
+spa.js->palvelin: XHTTP POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
+
+note over palvelin:
+palvelin lähettää takaisin spa.js-tiedostolle
+vastauksen olion lisäämisestä palvelimen
+omaan listaan, joka on onnistuessa status 201
+ja json-tiedoston
+end note
+
+palvelin-->spa.js: status ja json-tiedosto
+
+note over spa.js:
+saatuaan vastauksen palvelimelta,
+tiedosto tulostaa selaimen konsoliin
+vastauksen eli json-tiedoston
+end note
+
+spa.js-->selain: json-vastaus

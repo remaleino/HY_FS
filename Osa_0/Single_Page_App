@@ -1,0 +1,17 @@
+title Single Page App
+
+selain->palvelin: HTTP GET https://studies.cs.helsinki.fi/exampleapp/spa
+palvelin-->selain: HTML-koodi
+
+spa.js->palvelin: XHTTP GET https://studies.cs.helsinki.fi/exampleapp/data.js
+palvelin-->spa.js: json-tiedosto
+
+note over spa.js:
+sivuston ladauttua spa.js luo taulukon notes,
+pyytää palvelimelta tiedoston data.json daatan,
+muuttaa tiedoston datan olioiksi
+ja lisää ne taulukkoon sekä
+renderöi sen sisällön HTML elementtiin notes
+end note over
+
+spa.js-->selain: HTML-notes-sisältö
