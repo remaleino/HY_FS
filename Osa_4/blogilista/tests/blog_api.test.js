@@ -8,10 +8,10 @@ const api = supertest(app)
 
 beforeEach(async () => {
     await Blog.deleteMany({})
-    let blogObject = new Blog(helper.initialBlogs[0])
-    await blogObject.save()
-    blogObject = new Blog(helper.initialBlogs[1])
-    await blogObject.save()
+    const blogObjects = helper.initialBlogs
+        .map(blog => new Blog(blog))
+    const promiseArray = blogObjects.map(blog => blog.save())
+    await Promise.all(promiseArray)
 })
 test('blogs are returned as json', async () => {
     await api
@@ -31,8 +31,9 @@ test('all blogs are returned', async () => {
 //4.9
 test('an id is defined in blogs', async () => {
     const blogsAtStart = await helper.blogsInDb()
-    const idDefinitions = blogsAtStart.map(r => r.id)
-    expect(idDefinitions).toHaveLength(helper.initialBlogs.length)
+    for (let blog of blogsAtStart) {
+        expect(blog.id).toBeDefined()
+    }
 })
 //4.10
 test('a valid blog can be added', async () => {
@@ -52,6 +53,15 @@ test('a valid blog can be added', async () => {
     expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length + 1)
     const titles = blogsAtEnd.map(r => r.title)
     expect(titles).toContain('test')
+})
+//4.11
+test('if object is without likes, 0 likes are added', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    for (let blog of blogsAtStart) {
+        if (blog.likes === undefined) {
+            console.log('yes')
+        }
+    }
 })
 test('note without id is not added', async () => {
     const newBlog = {
