@@ -55,12 +55,21 @@ test('a valid blog can be added', async () => {
     expect(titles).toContain('test')
 })
 //4.11
-test('if object is without likes, 0 likes are added', async () => {
+test('if an object is without likes, 0 likes are added', async () => {
     const blogsAtStart = await helper.blogsInDb()
+    const definedLikes = { likes: 0 }
     for (let blog of blogsAtStart) {
         if (blog.likes === undefined) {
-            console.log('yes')
+            await api
+                .put(`/api/blogs/${blog.id}`)
+                .send(definedLikes)
+                .expect(200)
+                .expect('Content-Type', /application\/json/)
         }
+    }
+    const blogsAtEnd = await helper.blogsInDb()
+    for (let blog of blogsAtEnd) {
+        expect(blog.likes).toBeDefined()
     }
 })
 test('note without id is not added', async () => {
