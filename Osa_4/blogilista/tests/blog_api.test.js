@@ -13,90 +13,107 @@ beforeEach(async () => {
     const promiseArray = blogObjects.map(blog => blog.save())
     await Promise.all(promiseArray)
 })
-test('blogs are returned as json', async () => {
-    await api
-        .get('/api/blogs')
-        .expect(200)
-        .expect('Content-Type', /application\/json/)
-})
-test('there are two blogs', async () => {
-    const res = await api.get('/api/blogs')
-    expect(res.body).toHaveLength(helper.initialBlogs.length)
-})
-//4.8
-test('all blogs are returned', async () => {
-    const res = await api.get('/api/blogs')
-    expect(res.body).toHaveLength(helper.initialBlogs.length)
-})
-//4.9
-test('an id is defined in blogs', async () => {
-    const blogsAtStart = await helper.blogsInDb()
-    for (let blog of blogsAtStart) {
-        expect(blog.id).toBeDefined()
-    }
-})
-//4.10
-test('a valid blog can be added', async () => {
-    const newBlog = {
-        title: 'test',
-        author: 'test',
-        url: 'test',
-        likes: 1
-    }
-    await api
-        .post('/api/blogs')
-        .send(newBlog)
-        .expect(201)
-        .expect('Content-Type', /application\/json/)
-
-    const blogsAtEnd = await helper.blogsInDb()
-    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length + 1)
-    const titles = blogsAtEnd.map(r => r.title)
-    expect(titles).toContain('test')
-})
-//4.11
-test('if an object is without likes, 0 likes are added', async () => {
-    const blogsAtStart = await helper.blogsInDb()
-    const definedLikes = { likes: 0 }
-    for (let blog of blogsAtStart) {
-        if (blog.likes === undefined) {
-            await api
-                .put(`/api/blogs/${blog.id}`)
-                .send(definedLikes)
-                .expect(200)
-                .expect('Content-Type', /application\/json/)
+describe('getting correct blogs', () => {
+    //4.8
+    test('all blogs are returned', async () => {
+        const res = await api.get('/api/blogs')
+        expect(res.body).toHaveLength(helper.initialBlogs.length)
+    })
+    //4.9
+    test('an id is defined in blogs', async () => {
+        const blogsAtStart = await helper.blogsInDb()
+        for (let blog of blogsAtStart) {
+            expect(blog.id).toBeDefined()
         }
-    }
-    const blogsAtEnd = await helper.blogsInDb()
-    for (let blog of blogsAtEnd) {
-        expect(blog.likes).toBeDefined()
-    }
+    })
 })
-test('note without id is not added', async () => {
-    const newBlog = {
-        title: 'id-test',
-        author: 'test',
-        url: 'test',
-        likes: 1
-    }
-    await api
-        .post('/api/blogs')
-        .send(newBlog)
-        .expect(400)
-    const blogsAtEnd = await helper.blogsInDb()
-    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
-})
-test('a spesific note can be viewed', async () => {
-    const blogsAtStart = await helper.blogsInDb()
-    const blogToView = blogsAtStart[0]
+describe('adding a valid blog', () => {
+    //4.10
+    test('a valid blog can be added', async () => {
+        const newBlog = {
+            title: 'test',
+            author: 'test',
+            url: 'test',
+            likes: 1
+        }
+        await api
+            .post('/api/blogs')
+            .send(newBlog)
+            .expect(201)
+            .expect('Content-Type', /application\/json/)
 
-    const resultBlog = await api
-        .get(`/api/blog/${blogToView.id}`)
-        .expect(200)
-        .expect('Content-Type', /application\/json/)
-    const processedBlogToView = JSON.parse(JSON.stringify(blogToView))
-    expect(resultBlog.body).toEqual(processedBlogToView)
+        const blogsAtEnd = await helper.blogsInDb()
+        expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length + 1)
+        const titles = blogsAtEnd.map(r => r.title)
+        expect(titles).toContain('test')
+    })
+    //4.11
+    test('if an object is without likes, 0 likes are added', async () => {
+        const blogsAtStart = await helper.blogsInDb()
+        const definedLikes = { likes: 0 }
+        for (let blog of blogsAtStart) {
+            if (blog.likes === undefined) {
+                await api
+                    .put(`/api/blogs/${blog.id}`)
+                    .send(definedLikes)
+                    .expect(200)
+                    .expect('Content-Type', /application\/json/)
+            }
+        }
+        const blogsAtEnd = await helper.blogsInDb()
+        for (let blog of blogsAtEnd) {
+            expect(blog.likes).toBeDefined()
+        }
+    })
+    //4.12
+    test('without a title or url blogs are not added', async () => {
+        const newBlog = {
+            title: 'test',
+            author: 'test',
+            likes: 1
+        }
+        await api
+            .post('/api/blogs')
+            .send(newBlog)
+            .expect(400)
+    })
 })
-afterAll(() => {
-    mongoose.connection.close()
+//4.13
+describe('testing the deletation of blogs', () => {
+    test('if the deletion is successful, a status code 204 is returned', async () => {
+        const blogsAtStart = await helper.blogsInDb()
+        const blog = blogsAtStart[0]
+        console.log(blog.id)
+        await api
+            .delete(`/api/blogs/${blog.id}`)
+            .expect(204)
+    })
+    test('a wrong id causes and an error 404', async () => {
+        const fakeId = '632d9730ea3520193463b265'
+        await api
+            .delete(`/api/blogs/${fakeId}`)
+            .expect(404)
+    })
+})
+//4.14
+describe('Updating information of the blog', () => {
+    test('the title cannot be changet to an empty line', async () => {
+        const blogsAtStart = await helper.blogsInDb()
+        const blogId = blogsAtStart[0].id
+        const newTitle = { title: '' }
+        await api
+            .put(`/api/blogs/${blogId}`)
+            .send(newTitle)
+            .expect(400)
+
+    })
+    test('a successful updating sends the status code 200', async () => {
+        const blogsAtStart = await helper.blogsInDb()
+        const blogId = blogsAtStart[0].id
+        const newTitle = { title: 'New title' }
+        await api
+            .put(`/api/blogs/${blogId}`)
+            .send(newTitle)
+            .expect(200)
+    })
 })

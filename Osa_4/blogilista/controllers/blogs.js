@@ -6,9 +6,17 @@ blogsRouter.get('/', async (request, response) => {
     response.json(blogs)
 })
 blogsRouter.post('/', async (request, response) => {
-    const blog = new Blog(request.body)
-    const savedBlog = await blog.save()
-    response.status(201).json(savedBlog)
+    const blog = request.body
+    function hasProperty(props) {
+        return Object.prototype.hasOwnProperty.call(blog, props)
+    }
+    if (hasProperty('url') && hasProperty('title')) {
+        const newBlog = new Blog(blog)
+        const savedBlog = await newBlog.save()
+        response.status(201).json(savedBlog)
+    } else {
+        response.status(400).end()
+    }
 
 })
 blogsRouter.get('/:id', async (request, response) => {
@@ -19,9 +27,14 @@ blogsRouter.get('/:id', async (request, response) => {
         response.status(404).end()
     }
 })
-blogsRouter.get('/:id', async (req, res) => {
-    await Blog.findByIdAndRemove(req.params.id)
-    res.status(204).end()
+blogsRouter.delete('/:id', async (req, res) => {
+    const result = await Blog.findByIdAndRemove(req.params.id)
+    if (result) {
+        res.status(204).end()
+    } else {
+        console.log('here')
+        res.status(404).end()
+    }
 })
 blogsRouter.put('/:id', async (req, res) => {
     const body = req.body
@@ -31,7 +44,11 @@ blogsRouter.put('/:id', async (req, res) => {
         url: body.url,
         likes: body.likes
     }
-    const blog = await Blog.findByIdAndUpdate(req.params.id, uBlog, { new: true, runValidators: true, context: 'query' })
-    res.json(blog)
+    if (body.title === '') {
+        res.status(400).end()
+    } else {
+        const blog = await Blog.findByIdAndUpdate(req.params.id, uBlog, { new: true, runValidators: true, context: 'query' })
+        res.json(blog)
+    }
 })
 module.exports = blogsRouter
