@@ -1,9 +1,16 @@
 const mongoose = require('mongoose')
-
+//4.15 & 4.16
 const userSchema = mongoose.Schema({
-    username: String,
+    username: {
+        type: String,
+        minlength: 3,
+        required: true
+    },
     name: String,
-    passwordHash: String,
+    passwordHash: {
+        type: String,
+        required: true
+    },
     blogs: [
         {
             type: mongoose.Schema.Types.ObjectId,

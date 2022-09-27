@@ -9,13 +9,14 @@ usersRouter.get('/', async (req, res) => {
 //4.15
 usersRouter.post('/', async (req, res) => {
     const { username, name, password } = req.body
-    console.log('here')
+    //4.16
     const existingUser = await User.findOne({ username })
-    if (existingUser) {
+    if (existingUser || password.length < 3) {
         return res.status(400).json({
-            error: 'username must be unique'
+            error: 'username or password is not valid'
         })
     }
+
     const saltRounds = 10
     const passwordHash = await bcrypt.hash(password, saltRounds)
 

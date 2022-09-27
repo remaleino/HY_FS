@@ -126,6 +126,7 @@ describe('when there is initially one user at db', () => {
         const user = new User({ username: 'root', passwordHash })
         await user.save()
     })
+    //4.16
     test('creation succeeds with a fresh username', async () => {
         const usersAtStart = await helper.usersInDb()
 
@@ -143,5 +144,41 @@ describe('when there is initially one user at db', () => {
 
         const usersAtEnd = await helper.usersInDb()
         expect(usersAtEnd).toHaveLength(usersAtStart.length + 1)
+    })
+    test('a new user is not added, if username already exicts', async () => {
+        const usersAtStart = await helper.usersInDb()
+
+        const newUser = {
+            username: 'root',
+            name: 'testi',
+            password: 'salasana'
+        }
+
+        await api
+            .post('/api/users')
+            .send(newUser)
+            .expect(400)
+            .expect('Content-Type', /application\/json/)
+
+        const usersAtEnd = await helper.usersInDb()
+        expect(usersAtEnd).toHaveLength(usersAtStart.length)
+    })
+    test('a new user is not added, if a password is too short', async () => {
+        const usersAtStart = await helper.usersInDb()
+
+        const newUser = {
+            username: 'mmeikalainen',
+            name: 'testi',
+            password: 'sa'
+        }
+
+        await api
+            .post('/api/users')
+            .send(newUser)
+            .expect(400)
+            .expect('Content-Type', /application\/json/)
+
+        const usersAtEnd = await helper.usersInDb()
+        expect(usersAtEnd).toHaveLength(usersAtStart.length)
     })
 })
